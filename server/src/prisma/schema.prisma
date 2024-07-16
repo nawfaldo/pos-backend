@@ -1,0 +1,75 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Sum {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  sum  Int
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  password    String
+  userGroupId Int
+  userGroup   UserGroup    @relation(fields: [userGroupId], references: [id])
+  outlets     UserOutlet[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@fulltext([name])
+}
+
+model UserGroup {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  User          User[]
+  userGroupRole UserGroupRole[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model UserGroupRole {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  userGroupId         Int
+  userGroup           UserGroup             @relation(fields: [userGroupId], references: [id])
+  UserGroupRoleDetail UserGroupRoleDetail[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+}
+
+model UserGroupRoleDetail {
+  id              Int           @id @default(autoincrement())
+  name            String
+  access          Boolean
+  userGroupRoleId Int
+  userGroupRole   UserGroupRole @relation(fields: [userGroupRoleId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Outlet {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  users     UserOutlet[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model UserOutlet {
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  access   Int
+  outlet   Outlet @relation(fields: [outletId], references: [id])
+  outletId Int
+
+  @@id([userId, outletId])
+}
